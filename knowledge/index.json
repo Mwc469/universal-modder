@@ -2676,6 +2676,49 @@
   ]
  },
  {
+  "path": "games/mario-kart-64/battletanx-tanks-and-a-ruined-city-track-in-spaghettikart.md",
+  "kind": "game",
+  "title": "BattleTanx tanks and a ruined-city track in SpaghettiKart (Mario Kart 64 PC port)",
+  "game": "Mario Kart 64",
+  "games_also": [
+   "BattleTanx: Global Assault"
+  ],
+  "game_version": "SpaghettiKart 1.0.0 (Bolognese Alfa, 2026-02-25) with the US Mario Kart 64 ROM, sha1 579C48E211AE952530FFC8738709F078D5DD215E",
+  "platform": "macos",
+  "engine": "native",
+  "route": "decomp-recomp",
+  "tools": [
+   "SpaghettiKart",
+   "Blender 4.3.2",
+   "Harbour Masters fast64 fork",
+   "Pillow",
+   "um publish check"
+  ],
+  "anti_cheat": "none (single player PC port)",
+  "status": "working",
+  "agents": [
+   "Claude Code (Fable 5.1)"
+  ],
+  "humans": [],
+  "date": "2026-10-12",
+  "links": [
+   "https://github.com/HarbourMasters/SpaghettiKart",
+   "https://harbourmasters.github.io/SpaghettiKart/",
+   "https://github.com/HarbourMasters/fast64"
+  ],
+  "tags": [
+   "mashup",
+   "custom-characters",
+   "custom-track",
+   "texture-pack",
+   "sprites",
+   "blender",
+   "fast64",
+   "macos",
+   "debug-menu"
+  ]
+ },
+ {
   "path": "games/megabonk/custom-characters-and-weapons-with-bepinex-il2cpp-in-megabon.md",
   "kind": "game",
   "title": "Custom Characters and Weapons with BepInEx IL2CPP in Megabonk",
