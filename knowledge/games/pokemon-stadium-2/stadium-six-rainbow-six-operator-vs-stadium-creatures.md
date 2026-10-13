@@ -1,20 +1,20 @@
 ---
 kind: game
-title: "Stadium Six: a Rainbow Six operator fights Stadium creatures in a 15-match ladder (clean browser recreation)"
+title: "Stadium Six: a Rainbow Six operator fights Stadium creatures in a 15-match ladder (browser recreation that converts the real Pokémon Stadium 2 models and cries and Rainbow Six sounds and textures from the user's ROMs)"
 game: "Pokémon Stadium 2"
 games_also: ["Tom Clancy's Rainbow Six"]
 game_version: "Pokémon Stadium 2 (U) [!] .v64 (header POKEMON STADIUM 2, NP3E) and Tom Clancy's Rainbow Six (U) [!] .v64 (header RAINBOW SIX, NR6E), used as the brief only"
 platform: macos
 engine: unknown
 route: reimplementation
-tools: ["three.js 0.160.0 (cdnjs)", "node 24 (serve.js, node --test)", "WebAudio"]
+tools: ["three.js 0.160.0 (cdnjs)", "node 24 (serve.js, node --test)", "WebAudio", "Pillow", "clang++ (Xcode)", "N64 Sound Tool gameconfigsound.ini + MORTDecoder.cpp (jombo23/N64-Tools)", "Manurocker95/PokemonStadium2Unity README"]
 anti_cheat: "none (offline N64 dumps; nothing from them is read, hooked or shipped)"
 status: working
 agents: ["Claude Code (Fable 5.1)"]
 humans: []
 date: 2026-10-13
 links: []
-tags: [mashup, n64, reimplementation, arena-shooter, fps, three.js, browser, procedural-assets, no-decomp, bot-oracle]
+tags: [mashup, n64, reimplementation, arena-shooter, fps, three.js, browser, asset-conversion, yay0, rnc-propack, vadpcm, mort-codec, f3dex2, no-decomp, bot-oracle]
 ---
 
 # Stadium Six: a Rainbow Six operator fights Stadium creatures in a 15-match ladder (clean browser recreation)
@@ -45,7 +45,35 @@ So the lightest route that delivers the idea with an oracle is a clean standalon
 names are original lookalikes (one per type), not rips.
 
 ## How the game works (what we had to learn)
-Nothing was learned about either ROM's internals. The design borrowed from each game in words:
+Phase 2 converted the real assets (converters in `tools/`, outputs gitignored, nothing shipped):
+- **Pokémon Stadium 2 (U) models.** 1,626 Yay0 blocks; 673 decompress to "FRAGMENT" overlays pre-linked at
+  0x8FF00000 (header: two jump instructions, magic at +8, entry 0x20, relocation/size words). 486 of them are
+  Pokémon models in the *Stadium 1* layout documented by Manurocker95/PokemonStadium2Unity's README: find the root
+  via the LUI/ADDIU pair in 0x20–0x80; root = u16 species, +8 layout-stream list, +0xC skeletal anims, +0x10 aux
+  anims; the layout is a command stream with a fixed size table (0x17 model header 0x14 bytes: texture table
+  records fmt/siz/w/h/ptr, TLUT records; 0x1D bone 0x1C bytes: id, channel, s16 t/r, 16.16 scale; 0x23 material
+  0x10 bytes: texture + TLUT index + material DL; 0x22/0x1E/0x20/0x21 run F3DEX2 DLs). Vertices are 16 bytes,
+  bone-local (apply the bind matrices), UV/32, and bytes 12–14 are normals because the game lights everything
+  (the DLs never set G_LIGHTING). Textures: RGBA16, CI4/CI8 with RGBA5551 TLUTs (palette bank = pal*32 bytes),
+  IA/I. Z-up, ~centimetres. The battle archive starts at ROM 0x27fe188; choose the module with the most
+  triangles per species (a stage piece also claims species 25). All 260 species slots export (251 + forms).
+- **Pokémon Stadium 2 (U) cries.** Audio is the Zelda-style layout: N64 Sound Tool's gameconfigsound.ini gives
+  ctl table 0x86960, tbl table 0x86F30, ctl data 0x4AD450, tbl data 0x50F7E0 (92 banks, 14 sample tables).
+  Bank 4 = 300 sfx entries ({sample ptr, f32 tuning}); 265 point at "MORT" blobs in sample table 4 (ROM
+  0x67EE90). MORT is a bespoke codec SubDrag decompiled from the game (MORTDecoder.cpp, 2,800 lines); it
+  compiles with clang++ behind a 12-line StdAfx.h stub (CString=std::string, __int64, MessageBox, fopen
+  overload). Decoded lengths equal the bank's loop-end sample counts. Index = species − 1.
+- **Rainbow Six (U).** The ROM is 1,526 RNC ProPack method-1 files ("RNC\x01" headers with CRC16s), 19 MB
+  unpacked; a dernc-style decoder (16-bit LE bit buffer with the lookahead-word fix after literal runs) matches
+  every CRC. 1,328 files are mission geometry: F3DEX2 DL at 0x20, vertex base at header word 1, custom
+  16-byte vertex (x,y s16; RGBA; u,v; z at +12), CI4 32×32 textures + 16-entry TLUTs via segment 9. Segment 9
+  for mission one is the 238 KB file at ROM 0xA63C0 minus its 16-byte header, found by scanning every base for
+  one where all nine palettes of a model have the alpha bit set. Audio: the ini says RNCN64OffsetWave: an
+  "N64 PtrTablesV2" bank at +0x18 inside the RNC file at 0xC18A40 (count +0x20, instrument table +0x2C;
+  per sound: base, len, loop ptr +0xC, book ptr +0x10), 82 VADPCM waves at ROM 0x6B88D8, 22 kHz. The
+  first-person weapon models were not found (weapon names live only in code tables).
+
+The design borrowed from each game in words:
 - Stadium: trainer "sends out" creatures, Stadium-style HP bars (green → yellow → red), "X fainted!", a
   crowd and jumbotron, levels, Gym Leaders → Elite Four → Champion, Prime Cup after the ladder.
 - Rainbow Six: a planning phase before each match (primary, armour, gadget pack), MP5/M16/Benelli/PSG-1 plus a
@@ -98,15 +126,17 @@ Nothing was learned about either ROM's internals. The design borrowed from each 
    **Fix:** scale the rig to 0.38 and offset it to the lower right.
 
 ## Assets
-All procedural: canvas textures (floor ring, jumbotron), primitive-built bodies, WebAudio synthesis for shots,
-cries (per-type base pitch and waveform), crowd bed (looped filtered noise with swells), explosions and a short
-battle loop. No fal, no files.
+With the ROMs: the real Stadium 2 battle models (JSON + PNG per species, three.js loader applies the bind pose,
++90° X, 1/100), 265 cries, Rainbow Six's 82 sounds (gun/reload/explosion mapped by acoustic features; remap in
+map.json) and mission-one level textures on the arena. Without them: canvas textures, primitive bodies and WebAudio
+synthesis. No fal, nothing downloaded or committed.
 
 ## Cost and time
 One session, about two hours wall-clock including verification.
 
 ## Open questions
-- A human playtest of matches 6–14 for balance (the bot is a poor player: ~15–100% accuracy depending on range).
-- Creature models could be replaced by fal-generated sprites or rigged 3D if a key is available.
-- If a Pokémon Stadium 2 decomp ever appears, the roster could read real stats from the user's own ROM via a
-  converter, keeping this engine as the host.
+- A human playtest of matches 6–14 for balance, and listening to confirm the cry index = species−1 mapping and
+  which Rainbow Six wave indices are the gun shots (chosen by duration/attack/RMS only).
+- Rainbow Six first-person weapon models and the other missions' texture banks (segment 9 differs per mission).
+- Stadium skeletal animations (the battle-animation archive) for idle/attack poses instead of the bind pose.
+- Stadium 1 tooling (ethteck/pokemonstadium decomp) could cross-check the layout opcodes.
