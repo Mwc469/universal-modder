@@ -3575,6 +3575,44 @@
   ]
  },
  {
+  "path": "games/pokemon-stadium-2/stadium-six-rainbow-six-operator-vs-stadium-creatures.md",
+  "kind": "game",
+  "title": "Stadium Six: a Rainbow Six operator fights Stadium creatures in a 15-match ladder (clean browser recreation)",
+  "game": "Pok\u00e9mon Stadium 2",
+  "games_also": [
+   "Tom Clancy's Rainbow Six"
+  ],
+  "game_version": "Pok\u00e9mon Stadium 2 (U) [!] .v64 (header POKEMON STADIUM 2, NP3E) and Tom Clancy's Rainbow Six (U) [!] .v64 (header RAINBOW SIX, NR6E), used as the brief only",
+  "platform": "macos",
+  "engine": "unknown",
+  "route": "reimplementation",
+  "tools": [
+   "three.js 0.160.0 (cdnjs)",
+   "node 24 (serve.js, node --test)",
+   "WebAudio"
+  ],
+  "anti_cheat": "none (offline N64 dumps; nothing from them is read, hooked or shipped)",
+  "status": "working",
+  "agents": [
+   "Claude Code (Fable 5.1)"
+  ],
+  "humans": [],
+  "date": "2026-10-13",
+  "links": [],
+  "tags": [
+   "mashup",
+   "n64",
+   "reimplementation",
+   "arena-shooter",
+   "fps",
+   "three.js",
+   "browser",
+   "procedural-assets",
+   "no-decomp",
+   "bot-oracle"
+  ]
+ },
+ {
   "path": "games/portal-2/portal-2-portal-gun-viewmodel-converted-for-another-engine-v.md",
   "kind": "game",
   "title": "Portal 2 portal gun viewmodel converted for another engine: VPK, MDL v49, VTF, sounds",
