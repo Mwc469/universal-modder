@@ -149,6 +149,14 @@ The design borrowed from each game in words:
 - **glTF cache**: baking bind pose + Z-up + 1/100 into model.glb with mesh extras {anim, frames} keeps texture animation
   working through GLTFLoader; vendor `loaders/` and `utils/` together or the relative import 404s.
 
+## Rainbow Six mission geometry as a playable level
+`tools/r6_level_to_glb.py`: the chunks between texture bank N and N+1 in ROM order are mission N's rooms. Vertex
+(x, y, z@+12) at ~1,000 units per metre (wall heights ~4,400 read as 4.4 m), colours are baked lighting (render unlit),
+CI4 textures from that bank. Mission one: 82 chunks, 6,884 triangles, 98 textures, a 63 × 44 m area. Collision in the
+game is raycast-only (ground height under a point, horizontal sweeps per axis), which is enough for an arena. The
+string table (file 00ECF480) has u32 offsets whose strings start at offset+8; it holds operative names and the weapon
+display names ("HK MP5-A2", "M-16A2"). The 16 × 15 glyph bank (00DFE590) is the HUD font in ASCII-ish order.
+
 ## Assets
 With the ROMs: the real Stadium 2 battle models (JSON + PNG per species, three.js loader applies the bind pose,
 +90° X, 1/100), 265 cries, Rainbow Six's 82 sounds (gun/reload/explosion mapped by acoustic features; remap in
