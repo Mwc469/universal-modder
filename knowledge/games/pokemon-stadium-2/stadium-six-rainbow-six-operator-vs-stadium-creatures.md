@@ -136,6 +136,19 @@ The design borrowed from each game in words:
 8. **Weapon view model filled a third of the screen.** **Cause:** real-scale gun 0.35 m from the camera.
    **Fix:** scale the rig to 0.38 and offset it to the lower right.
 
+## Later findings (the 50-idea pass)
+- **Texture (aux) animations** are in the model module: root +0x10 lists headers (+6 loopStart, +8 channelCount, +0xA
+  frameCount, +0xC channel table of {u16 count, u16 base}, +0x10 byte-per-frame data); the 0x23 material's channel
+  index selects the channel, values are texture-table indices. Pikachu has 14 clips (blink, attack faces) over 7 meshes.
+- **Battle skeletal animations are not in the model modules**: their +0xC lists are empty (the byte at root+4 gives the
+  expected clip count, filled at runtime). The 57 skeletal lists in the ROM belong to the menu-model overlays. Yay0 data
+  blocks are texture bundles, Game Boy ROM pages (Z80 code in 16 KB pages at 0x23ADD4C) and UI data; whole-ROM scans for
+  the documented header layout find nothing else. The archive the Stadium 1 README mentions for Stadium 2 stays unfound.
+- **Announcer speech**: 1,122 more MORT blobs sit in sample tables 5-13 (ROM 0x50F7E0-0x14D6660 minus the 265 cries);
+  the same decoder yields them, roles are picked by ear.
+- **glTF cache**: baking bind pose + Z-up + 1/100 into model.glb with mesh extras {anim, frames} keeps texture animation
+  working through GLTFLoader; vendor `loaders/` and `utils/` together or the relative import 404s.
+
 ## Assets
 With the ROMs: the real Stadium 2 battle models (JSON + PNG per species, three.js loader applies the bind pose,
 +90° X, 1/100), 265 cries, Rainbow Six's 82 sounds (gun/reload/explosion mapped by acoustic features; remap in
