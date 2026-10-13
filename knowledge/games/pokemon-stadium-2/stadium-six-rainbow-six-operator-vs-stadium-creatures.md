@@ -14,7 +14,7 @@ agents: ["Claude Code (Fable 5.1)"]
 humans: []
 date: 2026-10-13
 links: []
-tags: [mashup, n64, reimplementation, arena-shooter, fps, three.js, browser, asset-conversion, yay0, rnc-propack, vadpcm, mort-codec, f3dex2, no-decomp, bot-oracle]
+tags: [mashup, n64, reimplementation, arena-shooter, fps, three.js, browser, asset-conversion, yay0, rnc-propack, vadpcm, mort-codec, f3dex2, no-decomp, bot-oracle, mips-interpreter, sequencer-bytecode, skeletal-animation, webrtc]
 ---
 
 # Stadium Six: a Rainbow Six operator fights Stadium creatures in a 15-match ladder (clean browser recreation)
@@ -166,10 +166,42 @@ synthesis. No fal, nothing downloaded or committed.
 ## Cost and time
 One session, about two hours wall-clock including verification.
 
+## Third pass: what the deeper reverse engineering found (2026-10-13)
+- **Pokémon Stadium 1 carries the skeletal animations Stadium 2 hides.** The same extractor (`tools/extract_stadium1.py`,
+  Stadium 2's opcode table, 150/150 models, zero failures) finds a non-empty root+0xC list on every Stadium 1 Pokémon
+  (6-12 clips, 1,020 total). Record: 32-byte header (u16 id, nChannels = 3 × animated bones, nFrames, pointers to a
+  channel table and three streams), 10-byte channel entries (key counts for scale/rot/trans; scale × 1000, 12-bit
+  rotation where 4096 = 360°, 12-bit translation, each doubling as a stream offset when animated), keys packed as
+  big-endian 12-bit nibbles, hold-last. Verified: Pikachu's idle frame 0 equals the bind pose on all 90 components.
+  Not yet exported to the game; notes in `lab/stadium1_anim_notes.md`.
+- **Booting Stadium 2 in a home-made MIPS interpreter** (`tools/trace_stadium_loader.py`: R4300 with 64-bit regs,
+  Count/Compare, MI/VI/AI/SI/PI/SP interrupts, a fake RSP that signals completion, minimal PIF) logs every cart DMA.
+  The game never DMAs bare Yay0: blocks sit behind 24-byte `PERS-SZP` headers (1,418 in the ROM), pulled in 4 KB chunks
+  and decompressed by the CPU; 762 FRAGMENT overlays are DMA'd raw. Through 220 M instructions of boot and attract
+  demo nothing fills a battle model's +0xC list, so the clip archive is still unlocated.
+- **Rainbow Six's music is a custom Saffire sequencer**, decoded from its interpreter (handler table at ROM 0x866A0,
+  45 ops): notes < 0x80 with optional velocity and a 1-2 byte duration, 0x60 = rest, 48 ticks per quarter, 0x85 tempo
+  (= BPM), 0x9C volume, 0xA2 pan, 0x81 program, 0x80 end. All 248 tracks of the 24 files parse to the terminator.
+  `tools/r6_music.py` writes event lists and synth renders; the wave-bank programs still need timbres.
+- **SubDrag's MORT encoder works** (`tools/mort_encode.sh`): a cry re-encodes to the exact original size; round-trip
+  SNR is low on noisy cries (1.3 dB) and fine on tones (16 dB), so it is a crude search over a ~1.6 bit/sample codec.
+  Encode wants big-endian samples; Decode fails at address 0.
+- **Rainbow Six collision and waypoints**: 13 mission data files hold 16-byte faces (+0x6C), a vertex+normal pool
+  (+0x70), an octree (+0x64) and scene nodes (+0x1C); the plane check n·p = −d holds everywhere. Twelve 22,416-byte
+  files after the banks are waypoint graphs (f32 xyz, 8-34 nodes), matched to missions by scoring against the
+  collision floor. Gotcha: collision and waypoints are in world space, the geometry chunks are chunk-local, so the glb
+  levels only overlay them once the chunk-to-scene-node placement is found.
+- **Portraits**: the earlier "portraits" are briefing slides; the roster art lives in parts-table banks (15 thumbnails
+  48×68 at 0xD92210, 20×20 icons, flags, uniform renders). The UI script references files by name only, so names pair
+  by ROM order (shifted by one for the reserve slots).
+- Game side (same commit): WebRTC co-op signalled through the dev server, replays, an arena editor, 90 more features;
+  see the repo's CHANGELOG. A bug worth recording: a "creature height" field reused as a vertical offset floated every
+  creature at its own height and silently broke the bot oracle (0 hits for a whole batch); the bot log caught it.
+
 ## Open questions
 - A human playtest of matches 6–14 for balance, and listening to confirm the cry index = species−1 mapping and
   which Rainbow Six wave indices are the gun shots (chosen by duration/attack/RMS only).
 - All five weapons are primitive lookalikes skinned with four of the game's level textures (picked by colour statistics: dark low-saturation mid-variance for metal, very dark low-variance for plastic, brown with grain for wood), since the ROM has no weapon meshes.
 - How Rainbow Six draws operatives and weapons if not from mesh files (procedural? code-resident?), and the other missions' texture banks (segment 9 differs per mission).
-- Stadium skeletal animations (the battle-animation archive) for idle/attack poses instead of the bind pose.
-- Stadium 1 tooling (ethteck/pokemonstadium decomp) could cross-check the layout opcodes.
+- Stadium 2's battle-animation archive (the tracer should be driven into a real battle, past the attract demo).
+- Exporting Stadium 1's decoded clips into the glb cache so the game can play real idle/attack poses.
