@@ -67,8 +67,9 @@ Phase 2 converted the real assets (converters in `tools/`, outputs gitignored, n
   unpacked; a dernc-style decoder (16-bit LE bit buffer with the lookahead-word fix after literal runs) matches
   every CRC. 1,328 files are mission geometry: F3DEX2 DL at 0x20, vertex base at header word 1, custom
   16-byte vertex (x,y s16; RGBA; u,v; z at +12), CI4 32×32 textures + 16-entry TLUTs via segment 9. Segment 9
-  for mission one is the 238 KB file at ROM 0xA63C0 minus its 16-byte header, found by scanning every base for
-  one where all nine palettes of a model have the alpha bit set. Audio: the ini says RNCN64OffsetWave: an
+  is the texture bank that precedes the chunk in ROM order (14 banks, header words count/0/0x40/0x400000/
+  0x20000/0x820), payload after its 16-byte header; found by scanning every base for one where all nine palettes
+  of a model have the alpha bit set, then generalised per mission (1,527 textures decode cleanly). Audio: the ini says RNCN64OffsetWave: an
   "N64 PtrTablesV2" bank at +0x18 inside the RNC file at 0xC18A40 (count +0x20, instrument table +0x2C;
   per sound: base, len, loop ptr +0xC, book ptr +0x10), 82 VADPCM waves at ROM 0x6B88D8, 22 kHz. The
   first-person weapon models do not exist: a complete map of the 16 MB ROM (code + FILEID name table, 1,328
@@ -147,6 +148,7 @@ One session, about two hours wall-clock including verification.
 ## Open questions
 - A human playtest of matches 6–14 for balance, and listening to confirm the cry index = species−1 mapping and
   which Rainbow Six wave indices are the gun shots (chosen by duration/attack/RMS only).
+- A rifle lookalike built from primitives and three of the game's metal/plastic textures stands in for the missing M16 model.
 - How Rainbow Six draws operatives and weapons if not from mesh files (procedural? code-resident?), and the other missions' texture banks (segment 9 differs per mission).
 - Stadium skeletal animations (the battle-animation archive) for idle/attack poses instead of the bind pose.
 - Stadium 1 tooling (ethteck/pokemonstadium decomp) could cross-check the layout opcodes.
