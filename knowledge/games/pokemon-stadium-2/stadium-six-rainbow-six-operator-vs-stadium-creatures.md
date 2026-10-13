@@ -148,7 +148,7 @@ One session, about two hours wall-clock including verification.
 ## Open questions
 - A human playtest of matches 6–14 for balance, and listening to confirm the cry index = species−1 mapping and
   which Rainbow Six wave indices are the gun shots (chosen by duration/attack/RMS only).
-- A rifle lookalike built from primitives and three of the game's metal/plastic textures stands in for the missing M16 model.
+- All five weapons are primitive lookalikes skinned with four of the game's level textures (picked by colour statistics: dark low-saturation mid-variance for metal, very dark low-variance for plastic, brown with grain for wood), since the ROM has no weapon meshes.
 - How Rainbow Six draws operatives and weapons if not from mesh files (procedural? code-resident?), and the other missions' texture banks (segment 9 differs per mission).
 - Stadium skeletal animations (the battle-animation archive) for idle/attack poses instead of the bind pose.
 - Stadium 1 tooling (ethteck/pokemonstadium decomp) could cross-check the layout opcodes.
