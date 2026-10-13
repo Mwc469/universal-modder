@@ -71,7 +71,13 @@ Phase 2 converted the real assets (converters in `tools/`, outputs gitignored, n
   one where all nine palettes of a model have the alpha bit set. Audio: the ini says RNCN64OffsetWave: an
   "N64 PtrTablesV2" bank at +0x18 inside the RNC file at 0xC18A40 (count +0x20, instrument table +0x2C;
   per sound: base, len, loop ptr +0xC, book ptr +0x10), 82 VADPCM waves at ROM 0x6B88D8, 22 kHz. The
-  first-person weapon models were not found (weapon names live only in code tables).
+  first-person weapon models do not exist: a complete map of the 16 MB ROM (code + FILEID name table, 1,328
+  geometry chunks, 13 mission data files, texture banks, 59 keyframe animations, 12 sprite banks with muzzle
+  flash/explosion/smoke/crosshair/fonts, 24 music sequences, the Red Storm UI text script, CI8 title/briefing
+  images, four wave banks = 352 sounds, a string table, then PCM and padding) leaves no file that could hold
+  a weapon or character mesh, and whole-ROM scans for raw vertex arrays in the game's 16-byte layout find none.
+  FRED_M2T1 / FRED_M5H3 / FRED_DESERT_LIGHT read as skin ids (model, torso/head, uniform), and the FRED weapon
+  names follow the same pattern.
 
 The design borrowed from each game in words:
 - Stadium: trainer "sends out" creatures, Stadium-style HP bars (green → yellow → red), "X fainted!", a
@@ -122,7 +128,11 @@ The design borrowed from each game in words:
    **Fix:** fog 90–260 and a brighter hemisphere light.
 6. **Hit creatures turned into white silhouettes.** **Cause:** emissive set to white for the hit flash on
    every material. **Fix:** a dim red emissive (0x803030) for 80 ms.
-7. **Weapon view model filled a third of the screen.** **Cause:** real-scale gun 0.35 m from the camera.
+7. **Looking for models in the wrong family.** **Symptom:** days of filters over 1,328 display-list files for a
+   gun. **Cause:** all 1,328 share one header tag; they are mission geometry. **Fix:** classify every file by
+   header first (tag words at +0x14/+0x18, a float at +8 means animation, `..0808` means sprite parts,
+   `(H<<16)|1` + 0x20000 means a CI8 image), then read the game's own text script (00C28590) for what the names mean.
+8. **Weapon view model filled a third of the screen.** **Cause:** real-scale gun 0.35 m from the camera.
    **Fix:** scale the rig to 0.38 and offset it to the lower right.
 
 ## Assets
@@ -137,6 +147,6 @@ One session, about two hours wall-clock including verification.
 ## Open questions
 - A human playtest of matches 6–14 for balance, and listening to confirm the cry index = species−1 mapping and
   which Rainbow Six wave indices are the gun shots (chosen by duration/attack/RMS only).
-- Rainbow Six first-person weapon models and the other missions' texture banks (segment 9 differs per mission).
+- How Rainbow Six draws operatives and weapons if not from mesh files (procedural? code-resident?), and the other missions' texture banks (segment 9 differs per mission).
 - Stadium skeletal animations (the battle-animation archive) for idle/attack poses instead of the bind pose.
 - Stadium 1 tooling (ethteck/pokemonstadium decomp) could cross-check the layout opcodes.
