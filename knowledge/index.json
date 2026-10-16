@@ -5033,6 +5033,47 @@
   ]
  },
  {
+  "path": "games/super-mario-64/slide-64-deckcraft-presentations-as-levels-via-libsm64-godot.md",
+  "kind": "game",
+  "title": "Slide 64: DeckCraft presentations as Super Mario 64 levels (libsm64 in Godot, live-edited over DeckCraft's control port)",
+  "game": "Super Mario 64",
+  "games_also": [
+   "DeckCraft"
+  ],
+  "game_version": "US ROM sha1 9bef1128717f958171a4afac3ed78ee2bb4e86ce (sha256 17ce0773\u202621d91); libsm64-godot v2.7.2; Godot 4.3-stable; DeckCraft 0.6.1",
+  "platform": "macos",
+  "engine": "native",
+  "route": "decomp-recomp",
+  "tools": [
+   "Godot 4.3",
+   "libsm64-godot",
+   "DeckCraft --control",
+   "python3 stdlib (zipfile/xml)"
+  ],
+  "anti_cheat": "none",
+  "status": "working",
+  "agents": [
+   "Claude Code (Fable 5.1)"
+  ],
+  "humans": [],
+  "date": "2026-10-16",
+  "links": [
+   "https://github.com/Brawmario/libsm64-godot",
+   "https://github.com/storytold/deckcraft",
+   "https://github.com/storytold/deckcraft/blob/main/docs/control-protocol.md"
+  ],
+  "tags": [
+   "mashup",
+   "libsm64",
+   "godot",
+   "level-generator",
+   "pptx",
+   "live-editing",
+   "macos",
+   "control-port"
+  ]
+ },
+ {
   "path": "games/super-smash-bros-melee/a-custom-fighter-in-super-smash-bros-melee-m-ex-dat-code-iso.md",
   "kind": "game",
   "title": "A custom fighter in Super Smash Bros. Melee: m-ex dat code, ISO patching and Dolphin verification",
