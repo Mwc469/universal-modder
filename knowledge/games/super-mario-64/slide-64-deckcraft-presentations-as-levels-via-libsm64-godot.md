@@ -44,10 +44,16 @@ rejected: sm64coopdx Lua mod (slides would be flat textures, Rosetta build), ROM
   `frame_post_draw`s, grabs the image → slab texture. No external renderer needed.
 - `tools/pptx2level.py` (offline) or `tools/deckcraft_bridge.py` (live) → `level.json`: slides → shapes
   `{kind,x,y,w,h,rot,color,text,image}` in metres (slide = 16 m wide; DeckCraft points = 960 wide → ×16/960).
-- `LevelBuilder.gd`: slab per slide (DeckCraft's `ui.render` PNG as its texture), shapes extruded 0.6 m × z-order
-  (so stacked shapes become towers), text boxes → signposts, pictures → textured blocks, `Area3D` star on the
-  topmost solid, floating bridge tiles between slides; all meshes in `libsm64_static_surfaces`, then
+- `LevelBuilder.gd`: one `WORLD = 5` scale turns the normalised 16 m slide into an **80 m × 45 m stage** (a Bob-omb
+  Battlefield footprint; libsm64 maps 100 SM64 units to 1 m), slab textured with the slide art, shapes extruded
+  **2 m per z-order layer** (one ledge grab each, so stacked shapes become real climbs), text boxes → 4 m signposts,
+  pictures → textured blocks, bullet lines → coins, a glowing star 2.5 m above the topmost solid, slides 50 m apart
+  joined by arched bridges (`ceil(gap/7)` tiles). All meshes in `libsm64_static_surfaces`, then
   `load_static_surfaces()` and `mario.create()`.
+- Camera: SM64-style follow 14 m back / 6 m up; every solid gets a `StaticBody3D` on layer 2 so a ray from Mario to
+  the desired camera spot can pull it in (never closer than 5 m) or lift it 6–10 m over low obstacles; it swings behind
+  Mario's direction of travel when the player isn't orbiting. A HUD arrow (projected through the camera basis) points
+  to the slide's star, then to the bridge.
 - Live mode: bridge `--watch` polls `document.inspect`/`slide.inspect` every 2 s and rewrites `level.json`
   atomically; the game polls the file's mtime and rebuilds, teleporting Mario back to where he stood.
 
