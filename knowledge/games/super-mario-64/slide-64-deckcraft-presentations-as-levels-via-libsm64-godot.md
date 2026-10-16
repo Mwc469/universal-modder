@@ -7,22 +7,24 @@ game_version: "US ROM sha1 9bef1128717f958171a4afac3ed78ee2bb4e86ce (sha256 17ce
 platform: macos
 engine: native
 route: decomp-recomp
-tools: ["Godot 4.3", "libsm64-godot", "DeckCraft --control", "python3 stdlib (zipfile/xml)"]
+tools: ["Godot 4.3", "libsm64-godot", "DeckCraft --control", "Godot ZIPReader/XMLParser", "python3 stdlib (zipfile/xml)"]
 anti_cheat: "none"
 status: working
 agents: ["Claude Code (Fable 5.1)"]
 humans: []
 date: 2026-10-16
 links: ["https://github.com/Brawmario/libsm64-godot", "https://github.com/storytold/deckcraft", "https://github.com/storytold/deckcraft/blob/main/docs/control-protocol.md"]
-tags: [mashup, libsm64, godot, level-generator, pptx, live-editing, macos, control-port]
+tags: [mashup, libsm64, godot, level-generator, pptx, live-editing, macos, control-port, standalone-export]
 ---
 
 # Slide 64: DeckCraft presentations as Super Mario 64 levels
 
-> A Godot 4.3 game where a presentation is the level: each slide a floating stage, each shape solid geometry, a star
-> per slide; Mario is real SM64 code via libsm64 fed by the player's own ROM. DeckCraft (open-source Rust PowerPoint
-> clone) is the level editor, and its JSON control port lets the game rebuild while you edit. Built headless on an
-> Apple Silicon Mac in one session.
+> A complete, exported Godot 4.3 game where a presentation is the level: each slide a floating stage, each shape
+> solid geometry, coins from bullet lines, a star per slide; Mario is real SM64 code via libsm64 fed by the player's
+> own ROM (SM64 music and sounds too). The app imports any `.pptx` by itself (GDScript ZIPReader + XMLParser) and
+> paints each slide onto its stage with a SubViewport; DeckCraft (open-source Rust PowerPoint clone) is the optional
+> live editor through its JSON control port. Title / deck picker / pause / results with saved best times. Built and
+> verified headless on an Apple Silicon Mac.
 
 ## Setup
 - **libsm64-godot v2.7.2** release zip (prebuilt macOS universal) into `addons/`; Godot **4.3-stable** exactly.
@@ -35,6 +37,11 @@ assets shipped; Godot gives the world; DeckCraft gives authoring plus a scriptab
 rejected: sm64coopdx Lua mod (slides would be flat textures, Rosetta build), ROM hacking.
 
 ## How it works
+- In-app importer `PptxImporter.gd`: `ZIPReader` + `XMLParser` into a tiny DOM, then `p:sp`/`p:pic`/`p:cxnSp`/`p:grpSp`
+  (group offsets via `a:chOff`/`a:chExt`), fills (`a:srgbClr`, `a:schemeClr` map, `p:style/a:fillRef`), `a:noFill`
+  + text → signpost; media extracted to `user://levels/<deck>/media`. Same schema as the Python tools below.
+- Slide artwork: `SlideArt.gd` draws background + polygons + text into a 960×540 `SubViewport`, awaits two
+  `frame_post_draw`s, grabs the image → slab texture. No external renderer needed.
 - `tools/pptx2level.py` (offline) or `tools/deckcraft_bridge.py` (live) → `level.json`: slides → shapes
   `{kind,x,y,w,h,rot,color,text,image}` in metres (slide = 16 m wide; DeckCraft points = 960 wide → ×16/960).
 - `LevelBuilder.gd`: slab per slide (DeckCraft's `ui.render` PNG as its texture), shapes extruded 0.6 m × z-order
@@ -53,9 +60,10 @@ and returns shapes with `box` (points), `fill`, `kind` (shape/placeholder/pictur
 theme colour). HTTP is **not** accepted (replies `bad JSON`). The CLI/MCP wrapper is not bundled in the .app.
 
 ## Verification
-Mario on a slab; a 3-slide generated deck built into stages, Mario runs/jumps across them; shape inserted over the
-control port appeared as a new tower in the running game with the star relocated. Screenshots in the project's
-`shots/`.
+Mario on a slab; generated decks built into stages, Mario runs/jumps across them; a shape inserted over the control
+port appeared as a new tower in the running game with the star relocated; title, pause and results screens; best
+time persisted across launches; the exported universal `.app` (ad-hoc signed, custom splash/icon, 150 MB) run from a
+clean folder with only the ROM imports a bundled deck and plays. Screenshots in the project's `shots/`.
 
 ## Gotchas
 1. **`LibSM64` undeclared / extension fails to load on macOS.** **Cause:** the prebuilt
@@ -70,5 +78,5 @@ control port appeared as a new tower in the running game with the star relocated
    work; the accessibility click tools can see the window, but Godot ignores synthetic key taps without a hold).
 
 ## What's next
-Export templates for a standalone .app; coins from bullet points; slide transitions as moving platforms; a
-DeckCraft add-in that opens the game from the ribbon.
+Slide transitions as moving platforms; speech-notes as a narrator; a DeckCraft add-in that opens the game from the
+ribbon; notarised builds.
